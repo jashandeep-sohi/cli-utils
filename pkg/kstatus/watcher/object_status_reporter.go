@@ -572,6 +572,14 @@ func (w *ObjectStatusReporter) eventHandler(
 	return handler
 }
 
+// maybeResetRESTMapper resets the RESTMapper for an API group with the smallest
+// possible blast radius if possible
+func (w *ObjectStatusReporter) maybeResetRESTMapper(group string) {
+	klog.V(3).Info("Resetting RESTMapper")
+
+	meta.MaybeResetGroupRESTMapper(w.Mapper, group)
+}
+
 // onCRDAdd handles creating a new informer to watch the new resource type.
 func (w *ObjectStatusReporter) onCRDAdd(obj *unstructured.Unstructured) {
 	gk, found := object.GetCRDGroupKind(obj)
@@ -584,9 +592,7 @@ func (w *ObjectStatusReporter) onCRDAdd(obj *unstructured.Unstructured) {
 	}
 	klog.V(3).Infof("CRD added for %s", gk)
 
-	klog.V(3).Info("Resetting RESTMapper")
-	// Reset mapper to invalidate cache.
-	meta.MaybeResetRESTMapper(w.Mapper)
+	w.maybeResetRESTMapper(gk.Group)
 
 	w.forEachTargetWithGroupKind(gk, func(gkn GroupKindNamespace) {
 		w.startInformer(gkn)
@@ -605,9 +611,7 @@ func (w *ObjectStatusReporter) onCRDUpdate(newObj *unstructured.Unstructured) {
 	}
 	klog.V(3).Infof("CRD updated for %s", gk)
 
-	klog.V(3).Info("Resetting RESTMapper")
-	// Reset mapper to invalidate cache.
-	meta.MaybeResetRESTMapper(w.Mapper)
+	w.maybeResetRESTMapper(gk.Group)
 
 	w.forEachTargetWithGroupKind(gk, func(gkn GroupKindNamespace) {
 		w.startInformer(gkn)
@@ -630,9 +634,7 @@ func (w *ObjectStatusReporter) onCRDDelete(oldObj *unstructured.Unstructured) {
 		w.stopInformer(gkn)
 	})
 
-	klog.V(3).Info("Resetting RESTMapper")
-	// Reset mapper to invalidate cache.
-	meta.MaybeResetRESTMapper(w.Mapper)
+	w.maybeResetRESTMapper(gk.Group)
 }
 
 // onNamespaceAdd handles creating new informers to watch this namespace.

@@ -2,6 +2,11 @@ module sigs.k8s.io/cli-utils
 
 go 1.17
 
+replace (
+	k8s.io/apimachinery => github.com/jashandeep-sohi/apimachinery v0.24.4-rc.0.0.20220716195151-9385d2d3e1c0
+	k8s.io/client-go => github.com/jashandeep-sohi/client-go v0.24.1-0.20220716210833-8ffd17958332
+)
+
 require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.3.0
